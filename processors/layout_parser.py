@@ -1,0 +1,1 @@
+def detect_layout_blocks(image): return []

@@ -1,2 +1,10 @@
-python-doctr[torch]
-PyMuPDF==1.23.21
+fpdf
+fitz
+pyMuPDF
+pdfplumber
+layoutparser
+docTR
+transformers
+torch
+detectron2
+pillow

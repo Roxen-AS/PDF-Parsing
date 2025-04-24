@@ -1,0 +1,1 @@
+def render_markdown(metadata, text_blocks, layout_blocks, tables, code_blocks, figures, links): return '# Markdown Output\n'

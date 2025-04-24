@@ -1,0 +1,1 @@
+def extract_text_blocks(image): return []
