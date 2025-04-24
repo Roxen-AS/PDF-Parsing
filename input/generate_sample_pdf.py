@@ -1,5 +1,6 @@
 from fpdf import FPDF
 
+
 class SamplePDF(FPDF):
     def header(self):
         self.set_font("Arial", "B", 12)
@@ -33,6 +34,7 @@ class SamplePDF(FPDF):
         self.set_text_color(0, 0, 255)
         self.cell(0, 10, text, ln=True, link=link)
         self.set_text_color(0, 0, 0)
+
 
 
 pdf = SamplePDF()
