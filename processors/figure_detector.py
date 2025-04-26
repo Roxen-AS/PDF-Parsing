@@ -1,21 +1,16 @@
-import fitz  # PyMuPDF
+import fitz  
 
 def detect_figures(pdf_path):
     doc = fitz.open(pdf_path)
     figures = []
 
-    for i in range(len(doc)):
-        page = doc[i]
-        images = page.get_images(full=True)
-        for img_index, img in enumerate(images):
-            xref = img[0]
-            base_image = doc.extract_image(xref)
-            image_bytes = base_image["image"]
-            ext = base_image["ext"]
+    for i, page in enumerate(doc):
+        img_list = page.get_images(full=True)
+        if img_list:
             figures.append({
                 "page": i + 1,
-                "type": "figure",
-                "ext": ext,
-                "data": image_bytes
+                "count": len(img_list),
+                "image_ids": [img[0] for img in img_list],
             })
+
     return figures

@@ -1,0 +1,51 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# venvs
+venv/
+.env/
+env/
+
+# input and output
+input/*.pdf
+output/*.md
+output/*.txt
+output/*.png
+output/*.jpg
+
+# system files
+.DS_Store
+Thumbs.db
+
+# log files
+*.log
+
+# Jupyter just in case
+.ipynb_checkpoints/
+
+# model checkpoints
+*.ckpt
+*.pth
+*.pt
+
+# temp files
+*.tmp
+*.temp
+*.bak
+
+# IDE-specific files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# packages downloaded
+*.egg-info/
+dist/
+build/
+
+# pip logs
+pip-log.txt
+pip-delete-this-directory.txt

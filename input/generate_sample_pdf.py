@@ -63,7 +63,7 @@ pdf.add_table(table_data)
 pdf.chapter_title("5. Link")
 pdf.add_link_text("Click here to visit OpenAI", "https://www.openai.com")
 
-# Image (figure)
+# Image
 pdf.chapter_title("6. Figure")
 pdf.set_font("Arial", "I", 12)
 pdf.cell(0, 10, "Below is a placeholder for an image that a figure detection model should recognize.", ln=True)
