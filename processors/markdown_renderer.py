@@ -1,37 +1,34 @@
-def render_markdown(output_path, metadata, outlines, links, ocr_text, layout, tables, code_blocks, figures):
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("# Document Metadata\n")
-        for k, v in metadata.items():
-            f.write(f"- **{k}**: {v}\n")
-        
-        f.write("\n# Outline\n")
-        for item in outlines:
-            f.write(f"{'  ' * (item[0]-1)}- {item[1]}\n")
-
-        f.write("\n# Hyperlinks\n")
-        for link in links:
-            uri = link.get("uri", "N/A")
-            f.write(f"- {uri}\n")
-
-        f.write("\n# OCR Text\n")
-        for page in ocr_text:
-            f.write(f"## Page {page['page_idx'] + 1}\n")
-            for block in page['blocks']:
-                f.write(f"{block['value']}\n\n")
-
-        f.write("\n# Layout Elements\n")
-        for el in layout:
-            f.write(f"- {el.type} at {el.block}\n")
-
-        f.write("\n# Tables\n")
-        for table in tables:
-            for row in table:
-                f.write("| " + " | ".join(str(cell) for cell in row) + " |\n")
-
-        f.write("\n# Code Blocks\n")
-        for code in code_blocks:
-            f.write("```python\n" + code + "\n```\n")
-
-        f.write("\n# Figures\n")
-        for fig in figures:
-            f.write(f"- Page {fig['page']}: {fig['count']} images detected\n")
+def render_markdown(text_blocks, tables, code_blocks, figures, metadata, links):
+    markdown = ""
+    
+    # Add metadata
+    markdown += f"# {metadata.get('title', 'Document Title')}\n"
+    markdown += f"Author: {metadata.get('author', 'Unknown')}\n\n"
+    
+    # Add text blocks
+    markdown += "## Text\n"
+    markdown += "\n".join(text_blocks) + "\n\n"
+    
+    # Add tables
+    markdown += "## Tables\n"
+    for table in tables:
+        for row in table:
+            markdown += "| " + " | ".join(row) + " |\n"
+        markdown += "\n"
+    
+    # Add code blocks
+    markdown += "## Code\n"
+    for code in code_blocks:
+        markdown += "```python\n" + code + "\n```\n"
+    
+    # Add figures
+    markdown += "## Figures\n"
+    for figure in figures:
+        markdown += f"![Figure]({figure})\n"  # Assuming figure is a path or URL
+    
+    # Add hyperlinks
+    markdown += "## Links\n"
+    for link in links:
+        markdown += f"[{link['uri']}]({link['uri']})\n"
+    
+    return markdown

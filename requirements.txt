@@ -1,7 +1,10 @@
-layoutparser==0.3.4
-pdfplumber==0.10.3
-PyMuPDF==1.23.21
-matplotlib==3.8.2
-torch==2.1.2
-opencv-python-headless==4.9.0.80
-git+https://github.com/mindee/doctr.git@main#egg=python-doctr
+doctr
+layoutparser
+layoutparser[layoutmodels_tf]   
+pdfplumber
+pymupdf
+ultralytics
+tensorflow
+python-doctr
+torch
+tqdm
