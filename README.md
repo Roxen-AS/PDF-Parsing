@@ -2,17 +2,7 @@
 
 Pipeline to parse PDF files and convert them into structured Markdown using a combination of models that are time efficient.
 
-PDF --> Images --> DocTR OCR
-                     |
-                     v
-         ┌────────────────────────┐
-         │ Element Classifier     │ <-- Rule-based + ML tagging
-         └────────────────────────┘
-                     |
-                     v
-         ┌────────────────────────┐
-         │ Markdown Converter     │ <-- Render structured .md
-         └────────────────────────┘
+![alt text](image.png)
 
 This project is a high-performance pipeline that converts PDF documents into clean, structured Markdown using multiple specialized models. It supports extraction of:
 
