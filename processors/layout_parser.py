@@ -1,27 +1,38 @@
-# processors/layout_parser.py
+import sys
+import os
+import tensorflow as tf
+import numpy as np
+import cv2
 
-import layoutparser as lp
+sys.path.append(os.path.join(os.path.dirname(__file__), 'EfficientDet'))
 
-# Use a light TensorFlow-based EfficientDet model
-model = lp.EfficientDetLayoutModel(
-    "lp://PubLayNet/efficientdet-lite2/config",  # Or lite0 for even lighter
-    extra_config=["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.5]
-)
+from efficientdet.efficientdet import efficientdet_keras
+from utils import preprocess_image
+
+model = efficientdet_keras(phi=0, num_classes=1, score_threshold=0.5)
+model.load_weights('processors/EfficientDet/efficientdet-d0.h5')
 
 def detect_layout(image_path):
-    """
-    Detects layout elements (text, title, figure, table, etc.) in the document image.
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"Failed to read image at {image_path}")
+        
+    input_image, scale = preprocess_image(image, image_size=512)
+    input_image = np.expand_dims(input_image, axis=0)
 
-    Args:
-        image_path (str): Path to the input image.
+    boxes, scores, labels = model.predict(input_image)
 
-    Returns:
-        List: Detected layout elements
-    """
-    layout = model.detect(image_path)
-    return layout
+    boxes /= scale
 
-if __name__ == "__main__":
-    image_path = "path/to/your/image.jpg"
-    layout = detect_layout(image_path)
-    layout.show()  # visualize
+    detections = []
+    for box, score, label in zip(boxes[0], scores[0], labels[0]):
+        if score < 0.5:
+            continue
+        x1, y1, x2, y2 = box
+        detections.append({
+            "label": int(label),
+            "score": float(score),
+            "box": [float(x1), float(y1), float(x2), float(y2)],
+        })
+
+    return detections
