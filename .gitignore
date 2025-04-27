@@ -18,3 +18,4 @@ venv/
 # PDFs and Outputs
 input/*.pdf
 output/*.md
+processors/EfficientDet
