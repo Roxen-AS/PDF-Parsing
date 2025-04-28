@@ -1,3 +1,4 @@
+#markdown_builder
 def assemble_markdown(text_blocks, tables, figures, code_blocks, metadata):
     md = []
 
