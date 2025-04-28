@@ -2,7 +2,9 @@
 
 Pipeline to parse PDF files and convert them into structured Markdown using a combination of models that are time efficient.
 
+
 ![alt text](image.png)
+
 
 This project is a high-performance pipeline that converts PDF documents into clean, structured Markdown using multiple specialized models. It supports extraction of:
 

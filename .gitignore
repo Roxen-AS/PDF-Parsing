@@ -1,21 +1,19 @@
-# Python
 __pycache__/
-*.py[cod]
-*.egg-info/
-*.egg
-
-# Environments
+*.pyc
+*.pyo
+*.pyd
 venv/
-.env/
-
-# Cache
-.cache/
-*.log
-
-# OS
+env/
 .DS_Store
-
-# PDFs and Outputs
-input/*.pdf
-output/*.md
-processors/EfficientDet
+Thumbs.db
+output/
+output_figures/
+models/detectron2_model/
+*.pth
+*.pt
+input/example.pdf
+*.log
+.ipynb_checkpoints/
+.vscode/
+*.dockerfile
+docker-compose.yml
