@@ -1,3 +1,4 @@
+#metadata_parser
 import fitz
 
 def extract_metadata(file_path):

@@ -1,3 +1,4 @@
+#table_parser
 import pdfplumber
 
 def extract_tables(file_path):
