@@ -10,7 +10,7 @@ This project is a high-performance pipeline that converts PDF documents into cle
 
 Text blocks (via DocTR OCR)
 
-Document layout structure (via LayoutParser)
+Document layout structure (via LayoutParser) -> Need to be checked
 
 Tables (via pdfplumber)
 
