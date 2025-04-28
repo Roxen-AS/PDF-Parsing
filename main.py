@@ -1,3 +1,4 @@
+#main.py
 import os
 from parsers.ocr_parser import extract_text
 #from parsers.layout_parser import extract_layout
