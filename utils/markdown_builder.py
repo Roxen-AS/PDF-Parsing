@@ -1,5 +1,6 @@
 #markdown_builder
-def assemble_markdown(text_blocks, tables, figures, code_blocks, metadata):
+
+def assemble_markdown(text_blocks, layout_blocks, tables, figures, code_blocks, metadata):
     md = []
 
     md.append(f"# Document Metadata\n\n")
