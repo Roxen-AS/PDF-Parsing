@@ -1,49 +1,65 @@
 #figure_parser
-import torch
+
+from pdf2image import convert_from_path
 from PIL import Image
+from transformers import AutoProcessor, AutoModelForCausalLM
 import os
-import fitz
-from transformers import DetrImageProcessor, DetrForObjectDetection
+import json
+import time
 
-processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
-model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+def pdf_to_image(pdf_path, dpi=150):
+    images = convert_from_path(pdf_path, dpi=dpi)
+    return images
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.to(device)
+def tf_id_detection(image, model, processor):
+    prompt = "<OD>"
+    inputs = processor(text=prompt, images=image, return_tensors="pt")
+    generated_ids = model.generate(
+        input_ids=inputs["input_ids"],
+        pixel_values=inputs["pixel_values"],
+        max_new_tokens=1024,
+        do_sample=False,
+        num_beams=3
+    )
+    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
+    annotation = processor.post_process_generation(generated_text, task="<OD>", image_size=(image.width, image.height))
+    return annotation["<OD>"]
 
-def extract_figures(file_path, output_dir="output_figures"):
+def save_image_from_bbox(image, annotation, page_num, output_dir):
+    figures = []
+    for i, bbox in enumerate(annotation['bboxes']):
+        label = annotation['labels'][i]
+        x1, y1, x2, y2 = bbox
+        cropped_image = image.crop((x1, y1, x2, y2))
+        fig_filename = f"figure_page{page_num+1}_{label}_{i+1}.png"
+        fig_path = os.path.join(output_dir, fig_filename)
+        cropped_image.save(fig_path)
+
+        figures.append({
+            "page": page_num + 1,
+            "label": label,
+            "box": [x1, y1, x2, y2],
+            "path": fig_path
+        })
+    return figures
+
+def extract_figures_with_tf_id(pdf_path, output_dir="output_figures"):
     os.makedirs(output_dir, exist_ok=True)
-    figures_info = []
 
-    doc = fitz.open(file_path)
-    for page_num in range(len(doc)):
-        page = doc.load_page(page_num)
-        pix = page.get_pixmap(dpi=150)
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    model_id = "yifeihu/TF-ID-large"
+    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
+    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
-        inputs = processor(images=img, return_tensors="pt").to(device)
-        outputs = model(**inputs)
-        target_sizes = torch.tensor([img.size[::-1]]).to(device)
+    print(f"Loaded TF-ID-large model: {model_id}")
+    images = pdf_to_image(pdf_path)
+    print(f"PDF loaded: {len(images)} pages")
 
-        results = processor.post_process_object_detection(outputs, threshold=0.8, target_sizes=target_sizes)[0]
+    all_figures = []
+    for page_num, image in enumerate(images):
+        print(f"Detecting figures on page {page_num+1}...")
+        annotation = tf_id_detection(image, model, processor)
+        figures = save_image_from_bbox(image, annotation, page_num, output_dir)
+        all_figures.extend(figures)
 
-        fig_id = 0
-        for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
-            if score > 0.8:
-                x_min, y_min, x_max, y_max = map(int, box.tolist())
-                cropped_img = img.crop((x_min, y_min, x_max, y_max))
-
-                image_filename = f"figure_page{page_num+1}_fig{fig_id+1}.png"
-                save_path = os.path.join(output_dir, image_filename)
-                cropped_img.save(save_path)
-
-                figures_info.append({
-                    "page": page_num + 1,
-                    "path": save_path,
-                    "label": model.config.id2label[label.item()],
-                    "score": round(score.item(), 3)
-                })
-
-                fig_id += 1
-
-    return figures_info
+    print(f"Detection complete. Saved {len(all_figures)} figures to '{output_dir}'")
+    return all_figures
