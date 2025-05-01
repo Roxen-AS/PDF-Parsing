@@ -1,9 +1,8 @@
-
-doctr
 transformers
-layoutparser[layoutmodels]
+torch
+pillow
+pdf2image
+pymupdf
 pdfplumber
-PyMuPDF
-python-docx
-opencv-python
-Pillow
+sentencepiece
+protobuf
