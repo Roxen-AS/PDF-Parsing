@@ -8,15 +8,13 @@ Pipeline to parse PDF files and convert them into structured Markdown using a co
 
 This project is a high-performance pipeline that converts PDF documents into clean, structured Markdown using multiple specialized models. It supports extraction of:
 
-Text blocks (via DocTR OCR)
-
-Document layout structure (via LayoutParser) -> Need to be checked
+Text blocks (via Donut)
 
 Tables (via pdfplumber)
 
-Code blocks (via heuristics)
+Code blocks 
 
-Figures (via Detectron2)
+Figures (via yifeihu/TF-ID large)
 
 Hyperlinks & metadata (via PyMuPDF)
 
