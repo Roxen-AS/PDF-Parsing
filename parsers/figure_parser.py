@@ -55,9 +55,6 @@ def extract_figures_with_tf_id(pdf_path, output_dir="output_figures"):
     for page_num, image in enumerate(images):
         print(f"Detecting figures on page {page_num+1}...")
 
-        # Resize to reduce memory footprint
-        image = image.resize((1280, 960))
-
         try:
             annotation = tf_id_detection(image, model, processor)
             figures = save_image_from_bbox(image, annotation, page_num, output_dir)
