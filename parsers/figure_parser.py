@@ -4,8 +4,8 @@ from pdf2image import convert_from_path
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForCausalLM
 import os
-import json
-import time
+import gc
+import torch
 
 def pdf_to_image(pdf_path, dpi=150):
     images = convert_from_path(pdf_path, dpi=dpi)
@@ -31,8 +31,7 @@ def save_image_from_bbox(image, annotation, page_num, output_dir):
         label = annotation['labels'][i]
         x1, y1, x2, y2 = bbox
         cropped_image = image.crop((x1, y1, x2, y2))
-        fig_filename = f"figure_page{page_num+1}_{label}_{i+1}.png"
-        fig_path = os.path.join(output_dir, fig_filename)
+        fig_path = os.path.join(output_dir, f"figure_page{page_num+1}_{label}_{i+1}.png")
         cropped_image.save(fig_path)
 
         figures.append({
@@ -45,21 +44,29 @@ def save_image_from_bbox(image, annotation, page_num, output_dir):
 
 def extract_figures_with_tf_id(pdf_path, output_dir="output_figures"):
     os.makedirs(output_dir, exist_ok=True)
-
     model_id = "yifeihu/TF-ID-large"
+
     model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
-    print(f"Loaded TF-ID-large model: {model_id}")
     images = pdf_to_image(pdf_path)
-    print(f"PDF loaded: {len(images)} pages")
-
     all_figures = []
+
     for page_num, image in enumerate(images):
         print(f"Detecting figures on page {page_num+1}...")
-        annotation = tf_id_detection(image, model, processor)
-        figures = save_image_from_bbox(image, annotation, page_num, output_dir)
-        all_figures.extend(figures)
 
-    print(f"Detection complete. Saved {len(all_figures)} figures to '{output_dir}'")
+        # Resize to reduce memory footprint
+        image = image.resize((1280, 960))
+
+        try:
+            annotation = tf_id_detection(image, model, processor)
+            figures = save_image_from_bbox(image, annotation, page_num, output_dir)
+            all_figures.extend(figures)
+        except Exception as e:
+            print(f"Error processing page {page_num+1}:", e)
+
+        # Clean up memory
+        gc.collect()
+        torch.cuda.empty_cache()
+
     return all_figures
