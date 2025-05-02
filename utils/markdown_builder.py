@@ -29,6 +29,7 @@ def assemble_markdown(text_blocks, layout_blocks, tables, figures, code_blocks, 
     if figures:
         md.append("\n# Figures\n")
         for fig in figures:
-            md.append(f"\n![Figure page {fig['page']}]({fig['path']})\n_Label: {fig['label']} | Confidence: {fig['score']}_\n")
+            confidence = fig.get('score', 'N/A')
+            md.append(f"\n![Figure page {fig['page']}]({fig['path']})\n_Label: {fig['label']} | Confidence: {confidence}_\n")
 
     return "\n".join(md)
