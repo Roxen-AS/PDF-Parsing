@@ -6,7 +6,7 @@ import torch
 import json
 
 processor = DonutProcessor.from_pretrained("naver-clova-ix/donut-base", use_fast=True)
-model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base", use_fast=True)
+model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
