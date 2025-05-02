@@ -6,22 +6,21 @@ import torch
 import json
 
 processor = DonutProcessor.from_pretrained("naver-clova-ix/donut-base", use_fast=True)
-model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base")
+model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base", use_fast=True)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
 def parse_page(image_path):
     image = Image.open(image_path).convert("RGB")
-    pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
-    task_prompt = "<s>"
-    decoder_input_ids = processor.tokenizer(task_prompt, add_special_tokens=False, return_tensors="pt").input_ids.to(device)
-    outputs = model.generate(pixel_values, decoder_input_ids=decoder_input_ids, max_length=1024)
-    raw_output = processor.batch_decode(outputs, skip_special_tokens=True)[0]
-    try:
-        data = json.loads(raw_output)
-        return donut_json_to_markdown(data)
-    except json.JSONDecodeError:
-        return raw_output
+    task_prompt = "<s> <ocr>"  # or <s> <docvqa> for other tasks
+
+    inputs = processor(images=image, text=task_prompt, return_tensors="pt").to(device)
+
+    with torch.no_grad():
+        outputs = model.generate(**inputs, max_new_tokens=512)
+
+    generated_text = processor.batch_decode(outputs, skip_special_tokens=True)[0]
+    return generated_text.strip()
 
 def donut_json_to_markdown(data):
     md = []
