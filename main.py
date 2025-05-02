@@ -10,7 +10,7 @@ from parsers.metadata_parser import extract_metadata
 from utils.markdown_builder import assemble_markdown
 from parsers.figure_parser import extract_figures_with_tf_id
 
-INPUT_PDF = "input/example.pdf"
+INPUT_PDF = "input/ex2.pdf"
 INPUT_IMG_DIR = "input_images"
 OUTPUT_MD = "output/rendered.md"
 OUTPUT_FIG_DIR = "output_figures"
