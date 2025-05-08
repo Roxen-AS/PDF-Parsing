@@ -1,43 +1,49 @@
-#hf_ocr_parser
+#hf_ocr_parser.py
 
-from transformers import DonutProcessor, VisionEncoderDecoderModel
-from PIL import Image
-import torch
-import json
+import fitz  
 
-processor = DonutProcessor.from_pretrained("naver-clova-ix/donut-base", use_fast=True)
-model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base")
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.to(device)
+def parse_page(page_path_or_number, pdf_path, figure_bboxes=None, table_bboxes=None):
+    """
+    Extracts text from a PDF page while ignoring image areas.
+    `figure_bboxes` and `table_bboxes` are in PDF coordinate space (not pixels).
+    """
+    doc = fitz.open(pdf_path)
+    
+    if isinstance(page_path_or_number, int):
+        page = doc.load_page(page_path_or_number)
+    else:
+        raise ValueError("Use page index (int) when calling parse_page with PyMuPDF.")
 
-def parse_page(image_path):
-    image = Image.open(image_path).convert("RGB")
-    task_prompt = "<s> <ocr>"  # or <s> <docvqa> for other tasks
+    # Optional: mask out bbox regions
+    mask_areas = (figure_bboxes or []) + (table_bboxes or [])
+    words = page.get_text("words")  
+    
+    filtered_words = []
+    for w in words:
+        x0, y0, x1, y1, word = w[:5]
+        skip = False
+        for bx1, by1, bx2, by2 in mask_areas:
+            if not (x1 < bx1 or x0 > bx2 or y1 < by1 or y0 > by2):
+                skip = True
+                break
+        if not skip:
+            filtered_words.append((x0, y0, word))
 
-    inputs = processor(images=image, text=task_prompt, return_tensors="pt").to(device)
+    
+    filtered_words.sort(key=lambda x: (round(x[1]), x[0]))  
+    lines = []
+    current_y = None
+    current_line = []
 
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=512)
+    for x, y, word in filtered_words:
+        if current_y is None or abs(current_y - y) > 5:
+            if current_line:
+                lines.append(" ".join(current_line))
+            current_line = [word]
+            current_y = y
+        else:
+            current_line.append(word)
+    if current_line:
+        lines.append(" ".join(current_line))
 
-    generated_text = processor.batch_decode(outputs, skip_special_tokens=True)[0]
-    return generated_text.strip()
-
-def donut_json_to_markdown(data):
-    md = []
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, list):
-                md.append(f"## {key.capitalize()}")
-                for item in value:
-                    if isinstance(item, dict):
-                        for k, v in item.items():
-                            md.append(f"- **{k}:** {v}")
-                    else:
-                        md.append(f"- {item}")
-            elif isinstance(value, dict):
-                md.append(f"## {key.capitalize()}")
-                for k, v in value.items():
-                    md.append(f"- **{k}:** {v}")
-            else:
-                md.append(f"### {key}: {value}")
-    return "\n".join(md)
+    return "\n".join(lines)
