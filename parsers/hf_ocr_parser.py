@@ -1,49 +1,54 @@
-#hf_ocr_parser.py
+from PIL import Image, ImageDraw
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
 
-import fitz  
+# Load doctr OCR model once
+model = ocr_predictor(pretrained=True)
 
-def parse_page(page_path_or_number, pdf_path, figure_bboxes=None, table_bboxes=None):
+def mask_bboxes(image, bboxes):
+    draw = ImageDraw.Draw(image)
+    for box in bboxes:
+        draw.rectangle(box, fill="white")
+    return image
+
+def extract_text_from_doctr_result(result):
     """
-    Extracts text from a PDF page while ignoring image areas.
-    `figure_bboxes` and `table_bboxes` are in PDF coordinate space (not pixels).
+    Extract and sort lines top-to-bottom from Doctr's output.
+    Returns one unified string per page.
     """
-    doc = fitz.open(pdf_path)
-    
-    if isinstance(page_path_or_number, int):
-        page = doc.load_page(page_path_or_number)
-    else:
-        raise ValueError("Use page index (int) when calling parse_page with PyMuPDF.")
+    pages_text = []
 
-    # Optional: mask out bbox regions
-    mask_areas = (figure_bboxes or []) + (table_bboxes or [])
-    words = page.get_text("words")  
-    
-    filtered_words = []
-    for w in words:
-        x0, y0, x1, y1, word = w[:5]
-        skip = False
-        for bx1, by1, bx2, by2 in mask_areas:
-            if not (x1 < bx1 or x0 > bx2 or y1 < by1 or y0 > by2):
-                skip = True
-                break
-        if not skip:
-            filtered_words.append((x0, y0, word))
+    for page in result.pages:
+        lines = []
 
-    
-    filtered_words.sort(key=lambda x: (round(x[1]), x[0]))  
-    lines = []
-    current_y = None
-    current_line = []
+        for block in page.blocks:
+            for line in block.lines:
+                text_line = " ".join([word.value for word in line.words]).strip()
+                if text_line:
+                    lines.append((line.geometry[0][1], text_line))  # (y position, text)
 
-    for x, y, word in filtered_words:
-        if current_y is None or abs(current_y - y) > 5:
-            if current_line:
-                lines.append(" ".join(current_line))
-            current_line = [word]
-            current_y = y
-        else:
-            current_line.append(word)
-    if current_line:
-        lines.append(" ".join(current_line))
+        # Sort lines vertically and join
+        lines.sort(key=lambda x: x[0])
+        page_text = "\n".join([t[1] for t in lines])
+        pages_text.append(page_text)
 
-    return "\n".join(lines)
+    return pages_text
+
+def parse_page(image_path, figure_bboxes=None, table_bboxes=None):
+    """
+    Uses Doctr OCR + layout ordering to extract text from an image,
+    masking figures/tables before processing.
+    """
+    image = Image.open(image_path).convert("RGB")
+
+    all_bboxes = (figure_bboxes or []) + (table_bboxes or [])
+    if all_bboxes:
+        image = mask_bboxes(image, all_bboxes)
+
+    # Run Doctr
+    doc = DocumentFile.from_images(image)
+    result = model(doc)
+
+    # Convert Doctr result to clean, readable text
+    page_texts = extract_text_from_doctr_result(result)
+    return "\n".join(page_texts).strip()
