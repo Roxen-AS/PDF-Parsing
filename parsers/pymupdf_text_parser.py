@@ -44,3 +44,4 @@ def parse_page(page_index, pdf_path, figure_bboxes=None, table_bboxes=None):
         lines.append(" ".join(current_line))
 
     return "\n".join(lines)
+    
