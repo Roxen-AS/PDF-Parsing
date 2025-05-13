@@ -54,3 +54,4 @@ def parse_page(image_path, figure_bboxes=None, table_bboxes=None):
     # Convert Doctr result to clean, readable text
     page_texts = extract_text_from_doctr_result(result)
     return "\n".join(page_texts).strip()
+
