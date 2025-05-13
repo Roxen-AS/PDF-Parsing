@@ -8,7 +8,7 @@ Pipeline to parse PDF files and convert them into structured Markdown using a co
 
 This project is a high-performance pipeline that converts PDF documents into clean, structured Markdown using multiple specialized models. It supports extraction of:
 
-Text blocks (via Donut)
+Text blocks (via EasyOCR)
 
 Tables (via pdfplumber)
 
