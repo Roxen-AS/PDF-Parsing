@@ -1,3 +1,7 @@
+#pymupdf_text_parser.py
+
+#Alternate and slower technique for text extraction using PyMuPDF
+
 import fitz  
 
 def parse_page(page_index, pdf_path, figure_bboxes=None, table_bboxes=None):

@@ -1,3 +1,5 @@
+#easyocr.py
+
 import logging
 from pathlib import Path
 from doctr.io import DocumentFile
@@ -6,7 +8,8 @@ from cleantext import clean
 import re
 import time
 from spellchecker import SpellChecker
-from easyocr import Reader  
+import easyocr  
+import torch  
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,20 +19,28 @@ logging.basicConfig(
 
 spell = SpellChecker()
 
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+logging.info(f"Using device: {device}")
+
+
+ocr_reader = easyocr.Reader(['en'], gpu=(device == "cuda"))
+
 def convert_image_to_text(image_path, ocr_model=None):
-
+    """
+    Convert an individual image to text using OCR.
+    Args:
+        image_path (str): The path to the image.
+        ocr_model: OCR model to use (defaults to pretrained model).
+    Returns:
+        str: Extracted text from the image.
+    """
     
-    ocr_reader = Reader(['en'], gpu=True)  
-
+    result = ocr_reader.readtext(image_path)
+    raw_text = [item[1] for item in result]  
     
-    img = DocumentFile.from_images([image_path])  
-    result = ocr_model(img)
-    
-    raw_text = result2text(result)
-    processed_text = [format_ocr_out(r) for r in raw_text]
-    final_text = [postprocess(t) for t in processed_text]
-
-    return "\n".join(final_text)
+   
+    return " ".join(raw_text)
 
 def result2text(result, as_text=False) -> str or list:
     """Convert OCR result to text"""
@@ -59,4 +70,3 @@ def postprocess(text: str) -> str:
         proc = proc.replace(str(k), str(v))
 
     return eval_and_replace(proc)
-

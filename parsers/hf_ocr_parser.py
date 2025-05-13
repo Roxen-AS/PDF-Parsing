@@ -1,3 +1,5 @@
+#hf_ocr_parser.py
+
 from PIL import Image, ImageDraw
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
