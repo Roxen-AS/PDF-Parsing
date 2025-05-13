@@ -1,3 +1,5 @@
+#main.py
+
 import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -25,7 +27,7 @@ def run_pipeline():
 
     metadata = extract_metadata(INPUT_PDF)
     tables, table_bboxes = extract_tables(INPUT_PDF)
-    figures, figure_bboxes = extract_figures_with_tf_id(INPUT_PDF, output_dir=OUTPUT_FIG_DIR)
+    figures, figure_bboxes, page_bboxes = extract_figures_with_tf_id(INPUT_PDF, output_dir=OUTPUT_FIG_DIR)
 
     print("🔍 Performing OCR on each page image...")
     ocr_results = []
