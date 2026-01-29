@@ -1,4 +1,4 @@
-# PDF-Parsing
+# LEXORA
 
 Pipeline to parse PDF files and convert them into structured Markdown using a combination of models that are time efficient.
 
